@@ -2,6 +2,8 @@
 
 This is a new and much improved version of my other GitHub repo, [slack-bot](https://github.com/Nickbohm555/slack-bot), and it includes filesystem management logic, better streaming, and better AI engineering principles that I will discuss further in my design doc.
 
+**Accuracy improved from 50-60% to 85-95%.**
+
 ## Image #1
 
 This is how the Slack bot conversation UI looks in the new screen-recorded demo:
