@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Slack Bot Evals</title>
+    <style>
+      :root {
+        --paper: #f6efe4;
+        --paper-2: #f1e4cf;
+        --card: rgba(255, 251, 245, 0.88);
+        --ink: #2e251e;
+        --muted: #7a6e64;
+        --line: rgba(92, 71, 50, 0.14);
+        --gold: #d49b18;
+        --green: #2f8f56;
+        --blue: #376ca8;
+        --coral: #d55d42;
+        --shadow: 0 20px 50px rgba(80, 54, 28, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 10% 10%, rgba(212, 155, 24, 0.12), transparent 28%),
+          radial-gradient(circle at 88% 16%, rgba(55, 108, 168, 0.10), transparent 20%),
+          linear-gradient(180deg, #fbf7ef 0%, var(--paper) 100%);
+      }
+
+      .frame {
+        width: 1600px;
+        height: 1060px;
+        margin: 0 auto;
+        padding: 52px 58px 44px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .shape {
+        position: absolute;
+        border-radius: 28px;
+        background: linear-gradient(180deg, rgba(237, 220, 193, 0.68), rgba(229, 206, 171, 0.48));
+        filter: blur(0.1px);
+      }
+
+      .shape.top-left {
+        top: 46px;
+        left: 44px;
+        width: 250px;
+        height: 170px;
+      }
+
+      .shape.top-right {
+        top: 56px;
+        right: 88px;
+        width: 250px;
+        height: 170px;
+      }
+
+      .shape.bottom-right {
+        right: 78px;
+        bottom: 54px;
+        width: 340px;
+        height: 218px;
+      }
+
+      .hero {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 28px;
+      }
+
+      .title-wrap {
+        max-width: 980px;
+      }
+
+      h1 {
+        margin: 0 0 10px;
+        font-size: 72px;
+        line-height: 0.95;
+        letter-spacing: -0.04em;
+        font-weight: 700;
+      }
+
+      .subtitle {
+        margin: 0;
+        font-size: 28px;
+        color: var(--muted);
+        line-height: 1.3;
+      }
+
+      .version-pill {
+        padding: 18px 22px;
+        border-radius: 24px;
+        background: rgba(255, 251, 245, 0.62);
+        border: 1px solid rgba(104, 78, 48, 0.10);
+        box-shadow: var(--shadow);
+        min-width: 280px;
+        backdrop-filter: blur(8px);
+      }
+
+      .version-pill .eyebrow {
+        display: inline-block;
+        margin-bottom: 10px;
+        font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-size: 13px;
+        letter-spacing: 0.14em;
+        color: var(--muted);
+        text-transform: uppercase;
+      }
+
+      .version-pill strong {
+        display: block;
+        font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-size: 30px;
+        line-height: 1.05;
+        letter-spacing: -0.03em;
+      }
+
+      .metrics {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+        margin-bottom: 26px;
+      }
+
+      .metric-card,
+      .panel {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(10px);
+      }
+
+      .metric-card {
+        padding: 22px 24px 20px;
+        min-height: 152px;
+      }
+
+      .metric-bar {
+        width: 70px;
+        height: 10px;
+        border-radius: 999px;
+        margin-bottom: 24px;
+      }
+
+      .metric-card:nth-child(1) .metric-bar { background: var(--coral); }
+      .metric-card:nth-child(2) .metric-bar { background: var(--blue); }
+      .metric-card:nth-child(3) .metric-bar { background: var(--gold); }
+      .metric-card:nth-child(4) .metric-bar { background: var(--green); }
+
+      .metric-value {
+        font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-size: 64px;
+        line-height: 0.95;
+        letter-spacing: -0.05em;
+      }
+
+      .metric-label {
+        margin-top: 8px;
+        font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-size: 24px;
+        line-height: 1.1;
+      }
+
+      .metric-note {
+        margin-top: 6px;
+        font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--muted);
+        font-size: 18px;
+      }
+
+      .content {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        grid-template-columns: 1.05fr 1.4fr;
+        gap: 18px;
+      }
+
+      .panel {
+        padding: 24px 28px 26px;
+      }
+
+      .panel h2 {
+        margin: 0;
+        font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-size: 34px;
+        line-height: 1.05;
+        letter-spacing: -0.04em;
+      }
+
+      .panel p {
+        margin: 6px 0 18px;
+        font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--muted);
+        font-size: 18px;
+      }
+
+      .score-row {
+        display: grid;
+        grid-template-columns: 36px 1fr 60px;
+        gap: 16px;
+        align-items: center;
+        margin: 14px 0;
+        font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      .score-index,
+      .question-tag {
+        font-size: 28px;
+        color: var(--muted);
+      }
+
+      .track {
+        height: 38px;
+        border-radius: 999px;
+        background: rgba(107, 91, 74, 0.10);
+        overflow: hidden;
+      }
+
+      .fill {
+        height: 100%;
+        border-radius: 999px;
+      }
+
+      .score-value {
+        font-size: 28px;
+        text-align: right;
+        color: #4f4339;
+      }
+
+      .q-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .q-item {
+        display: grid;
+        grid-template-columns: 76px 1fr 150px;
+        gap: 16px;
+        align-items: center;
+        padding: 10px 0 12px;
+        border-bottom: 1px solid rgba(107, 91, 74, 0.14);
+        font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      .q-item:last-child {
+        border-bottom: none;
+      }
+
+      .pill {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        height: 38px;
+        width: 56px;
+        border-radius: 999px;
+        color: #fffaf2;
+        font-size: 20px;
+        font-weight: 700;
+      }
+
+      .q-copy {
+        font-size: 24px;
+        line-height: 1.24;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .q-meta {
+        text-align: right;
+        font-size: 22px;
+        color: #5c5147;
+        line-height: 1.3;
+      }
+
+      .footer {
+        position: relative;
+        z-index: 2;
+        margin-top: 18px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--muted);
+        font-size: 18px;
+      }
+
+      .footer strong {
+        color: var(--ink);
+        font-weight: 600;
+      }
+
+      .green { background: var(--green); }
+      .gold { background: var(--gold); }
+      .coral { background: var(--coral); }
+      .blue { background: var(--blue); }
+    </style>
+  </head>
+  <body>
+    <main class="frame">
+      <div class="shape top-left"></div>
+      <div class="shape top-right"></div>
+      <div class="shape bottom-right"></div>
+
+      <section class="hero">
+        <div class="title-wrap">
+          <h1>Evals</h1>
+          <p class="subtitle">7-row benchmark snapshot for the current Slack bot retrieval stack, rendered from the latest full refresh.</p>
+        </div>
+        <aside class="version-pill">
+          <span class="eyebrow">Current Baseline</span>
+          <strong>full-refresh eval<br />2026-04-26</strong>
+        </aside>
+      </section>
+
+      <section class="metrics">
+        <article class="metric-card">
+          <div class="metric-bar"></div>
+          <div class="metric-value">0.8757</div>
+          <div class="metric-label">Average correctness</div>
+          <div class="metric-note">Full 7-question average score</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-bar"></div>
+          <div class="metric-value">5 / 7</div>
+          <div class="metric-label">Rows at 0.8+</div>
+          <div class="metric-note">Questions clearing the strong-answer bar</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-bar"></div>
+          <div class="metric-value">5.57</div>
+          <div class="metric-label">Average tool calls</div>
+          <div class="metric-note">Lean retrieval budget across the run</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-bar"></div>
+          <div class="metric-value">36.94s</div>
+          <div class="metric-label">Average latency</div>
+          <div class="metric-note">Kept under the one-minute target</div>
+        </article>
+      </section>
+
+      <section class="content">
+        <article class="panel">
+          <h2>Row Scores</h2>
+          <p>Judge correctness by benchmark row</p>
+
+          <div class="score-row">
+            <div class="score-index">1.</div>
+            <div class="track"><div class="fill green" style="width: 90%;"></div></div>
+            <div class="score-value">0.90</div>
+          </div>
+          <div class="score-row">
+            <div class="score-index">2.</div>
+            <div class="track"><div class="fill green" style="width: 90%;"></div></div>
+            <div class="score-value">0.90</div>
+          </div>
+          <div class="score-row">
+            <div class="score-index">3.</div>
+            <div class="track"><div class="fill green" style="width: 88%;"></div></div>
+            <div class="score-value">0.88</div>
+          </div>
+          <div class="score-row">
+            <div class="score-index">4.</div>
+            <div class="track"><div class="fill blue" style="width: 100%;"></div></div>
+            <div class="score-value">1.00</div>
+          </div>
+          <div class="score-row">
+            <div class="score-index">5.</div>
+            <div class="track"><div class="fill gold" style="width: 75%;"></div></div>
+            <div class="score-value">0.75</div>
+          </div>
+          <div class="score-row">
+            <div class="score-index">6.</div>
+            <div class="track"><div class="fill blue" style="width: 100%;"></div></div>
+            <div class="score-value">1.00</div>
+          </div>
+          <div class="score-row">
+            <div class="score-index">7.</div>
+            <div class="track"><div class="fill coral" style="width: 70%;"></div></div>
+            <div class="score-value">0.70</div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <h2>Question Breakdown</h2>
+          <p>Correctness and tool usage by eval row</p>
+
+          <div class="q-list">
+            <div class="q-item">
+              <div class="pill green">#1</div>
+              <div class="q-copy">Taxonomy rollout proof plan after the 2026-02-20 issue start</div>
+              <div class="q-meta">90% · 7 calls</div>
+            </div>
+            <div class="q-item">
+              <div class="pill green">#2</div>
+              <div class="q-copy">Verdant Bay live patch window and approved rollback command</div>
+              <div class="q-meta">90% · 4 calls</div>
+            </div>
+            <div class="q-item">
+              <div class="pill green">#3</div>
+              <div class="q-copy">MapleHarvest Quebec pilot temporary mappings and workshop output</div>
+              <div class="q-meta">88% · 5 calls</div>
+            </div>
+            <div class="q-item">
+              <div class="pill blue">#4</div>
+              <div class="q-copy">Aureum SCIM field conflict and Jin’s fastest approved fix</div>
+              <div class="q-meta">100% · 7 calls</div>
+            </div>
+            <div class="q-item">
+              <div class="pill gold">#5</div>
+              <div class="q-copy">Most likely tactical defection risk and next milestone if Northstar slips</div>
+              <div class="q-meta">75% · 6 calls</div>
+            </div>
+            <div class="q-item">
+              <div class="pill blue">#6</div>
+              <div class="q-copy">North America West Event Nexus accounts with the matching risk pattern</div>
+              <div class="q-meta">100% · 6 calls</div>
+            </div>
+            <div class="q-item">
+              <div class="pill coral">#7</div>
+              <div class="q-copy">Recurring Canada approval-bypass pattern across the relevant cohort</div>
+              <div class="q-meta">70% · 4 calls</div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <footer class="footer">
+        <div>Artifacts: <strong>example_queries_results_full_refresh.csv</strong> and <strong>example_queries_results_full_refresh.summary.json</strong></div>
+        <div>Current pushed baseline: <strong>avg correctness 0.8757</strong></div>
+      </footer>
+    </main>
+  </body>
+</html>
